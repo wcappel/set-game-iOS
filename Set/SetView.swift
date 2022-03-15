@@ -19,11 +19,19 @@ struct SetView: View {
                         game.selectCard(id: card.id)
                     }
             }).padding()
-            Button(action: {
-                game.addThree()
-            }, label: {
-                Text("Add 3 Cards").font(.title2)
-            })
+            HStack {
+                Button(action: {
+                    game.newGame()
+                }, label : {
+                    Text("New Game").font(.title2)
+                }).padding(.horizontal, 35)
+                Spacer()
+                Button(action: {
+                    game.addThree()
+                }, label: {
+                    Text("Add 3 Cards").font(.title2)
+                }).opacity(game.outOfCards ? 0 : 1).padding(.horizontal, 35)
+            }
         }
     }
 }
@@ -77,7 +85,7 @@ struct CardView: View {
     var body: some View {
         GeometryReader(content: {geometry in
             ZStack() {
-                let cardForm = card.selected ? AnyView(RoundedRectangle(cornerRadius: 10).strokeBorder(.green, lineWidth: 3)) : AnyView(RoundedRectangle(cornerRadius: 10).strokeBorder())
+                let cardForm = card.selected ? AnyView(RoundedRectangle(cornerRadius: 10).strokeBorder(.blue, lineWidth: 4)) : (card.matched ? AnyView(RoundedRectangle(cornerRadius: 10).strokeBorder(.green, lineWidth: 4)) : AnyView(RoundedRectangle(cornerRadius: 10).strokeBorder()))
                 RoundedRectangle(cornerRadius: 10).foregroundColor(Color.white)
                 if card.inPlay {
                     cardForm

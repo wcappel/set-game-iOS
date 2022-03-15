@@ -30,6 +30,7 @@ struct SetModel {
     }
     
     mutating func addThree() {
+        replaceMatched()
         if cards.count >= 3 {
             for _ in 0..<3 {
                 let popped: Card = cards.remove(at: 0)
@@ -38,32 +39,114 @@ struct SetModel {
         }
     }
     
-    func countSelected() -> Int {
-        var count = 0
+    func getSelected() -> Array<Card> {
+        var selected: Array<Card> = []
         for index in revealedCards.indices {
             if revealedCards[index].selected {
-                count += 1
+                selected.append(revealedCards[index])
             }
         }
-        return count
+        return selected
     }
     
-    func checkForSet() {
-        //todo
+    mutating func replaceMatched() {
+        if !cards.isEmpty {
+            for index in revealedCards.indices {
+                if revealedCards[index].matched {
+                    revealedCards[index] = cards.remove(at: 0)
+                }
+            }
+        } else {
+        var newRevealedCards: Array<Card> = []
+            for index in revealedCards.indices {
+                if !revealedCards[index].matched {
+                    newRevealedCards.append(revealedCards[index])
+                }
+            }
+            revealedCards = newRevealedCards
+        }
+    }
+    
+    enum setStatus {
+        case different
+        case mixed
+        case same
+    }
+    
+    func checkPropertyMatch<T>(prop1: T, prop2: T, prop3: T) -> setStatus where T: Equatable {
+        print("\(prop1), \(prop2), \(prop3)")
+        if (prop1 == prop2 && prop2 == prop3) {
+            return setStatus.same
+        } else if (prop1 != prop2 && prop2 != prop3 && prop3 != prop1) {
+            return setStatus.different
+        } else {
+            return setStatus.mixed
+        }
+    }
+    
+    func checkForSet(selected: Array<Card>) -> Bool {
+        print("checking")
+        let shapeSet = checkPropertyMatch(prop1: selected[0].shape, prop2: selected[1].shape, prop3: selected[2].shape)
+        let colorSet = checkPropertyMatch(prop1: selected[0].color, prop2: selected[1].color, prop3: selected[2].color)
+        let shadingSet = checkPropertyMatch(prop1: selected[0].shading, prop2: selected[1].shading, prop3: selected[2].shading)
+        let numberSet = checkPropertyMatch(prop1: selected[0].numShapes, prop2: selected[1].numShapes, prop3: selected[2].numShapes)
+        
+        if shapeSet == .different && colorSet == .different && shadingSet == .different && numberSet == .different {
+            print("set found")
+            return true
+        } else if shapeSet == .different && colorSet == .same && shadingSet == .same && numberSet == .same {
+            print("set found")
+            return true
+        } else if shapeSet == .same && colorSet == .different && shadingSet == .same && numberSet == .same {
+            print("set found")
+            return true
+        } else if shapeSet == .same && colorSet == .same && shadingSet == .different && numberSet == .same {
+            print("set found")
+            return true
+        } else if shapeSet == .same && colorSet == .same && shadingSet == .same && numberSet == .different {
+            print("set found")
+            return true
+        } else {
+            print("no set found")
+            return false
+        }
     }
     
     mutating func selectCard(id: Int) {
         for index in revealedCards.indices {
-            let numOfSelected: Int = countSelected()
+            var selected: Array<Card> = getSelected()
             if revealedCards[index].id == id {
-                if revealedCards[index].selected == false && numOfSelected < 3 {
+                if revealedCards[index].selected == false && selected.count < 3 && !revealedCards[index].matched {
                     revealedCards[index].selected.toggle()
+                    selected.append(revealedCards[index])
+                    if selected.count == 3 {
+                        let result: Bool = checkForSet(selected: selected)
+                        print(result)
+                        if result {
+                            for index in revealedCards.indices {
+                                if revealedCards[index].selected == true {
+                                    revealedCards[index].matched = true
+                                    revealedCards[index].selected = false
+                                }
+                            }
+                        }
+                    } else {
+                        replaceMatched()
+                        break
+                    }
                 } else if revealedCards[index].selected == true {
                     revealedCards[index].selected.toggle()
+                } else if revealedCards[index].selected == false && selected.count >= 3 {
+                    for index in revealedCards.indices {
+                        if revealedCards[index].id == id {
+                            revealedCards[index].selected = true
+                        } else {
+                            revealedCards[index].selected = false
+                        }
+                    }
                 }
             }
         }
-        
     }
     
     private let colors: Array<String> = ["orange", "purple", "blue"]
@@ -78,5 +161,6 @@ struct SetModel {
         let color: String
         var inPlay: Bool = true
         var selected: Bool = false
+        var matched: Bool = false
     }
 }

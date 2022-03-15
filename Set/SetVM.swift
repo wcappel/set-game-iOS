@@ -19,8 +19,16 @@ class SetVM: ObservableObject {
         return SetModel()
     }
     
+    func newGame() {
+        model = SetVM.createSetGame()
+    }
+    
     var cards: Array<Card> {
         return model.revealedCards
+    }
+    
+    var outOfCards: Bool {
+        return model.cards.isEmpty
     }
     
     //MARK: - Intent(s)
