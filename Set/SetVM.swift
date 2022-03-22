@@ -23,12 +23,24 @@ class SetVM: ObservableObject {
         model = SetVM.createSetGame()
     }
     
-    var cards: Array<Card> {
+    var revealedCards: Array<Card> {
         return model.revealedCards
+    }
+    
+    var undealtCards: Array<Card> {
+        return model.cards
+    }
+    
+    var discardedCards: Array<Card> {
+        return model.discardedCards
     }
     
     var outOfCards: Bool {
         return model.cards.isEmpty
+    }
+    
+    func replaceMatched() {
+        model.replaceMatched()
     }
     
     //MARK: - Intent(s)

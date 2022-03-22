@@ -10,6 +10,7 @@ import Foundation
 struct SetModel {
     private(set) var cards: Array<Card>
     private(set) var revealedCards: Array<Card>
+    private(set) var discardedCards: Array<Card>
     
     init() {
         cards = []
@@ -19,7 +20,7 @@ struct SetModel {
                 for shade in shading {
                     for i in 1...3 {
                         count += 1
-                        let newCard = Card(id: count, numShapes: i, shape: shape, shading: shade, color: color, inPlay: true)
+                        let newCard = Card(id: count, numShapes: i, shape: shape, shading: shade, color: color, faceUp: false)
                         cards.append(newCard)
                     }
                 }
@@ -27,13 +28,14 @@ struct SetModel {
         }
         cards.shuffle()
         revealedCards = []
+        discardedCards = []
     }
     
     mutating func addThree() {
-        replaceMatched()
         if cards.count >= 3 {
             for _ in 0..<3 {
-                let popped: Card = cards.remove(at: 0)
+                var popped: Card = cards.remove(at: 0)
+                popped.faceUp = true
                 revealedCards.append(popped)
             }
         }
@@ -50,21 +52,18 @@ struct SetModel {
     }
     
     mutating func replaceMatched() {
-        if !cards.isEmpty {
-            for index in revealedCards.indices {
-                if revealedCards[index].matched {
-                    revealedCards[index] = cards.remove(at: 0)
-                }
-            }
-        } else {
         var newRevealedCards: Array<Card> = []
-            for index in revealedCards.indices {
-                if !revealedCards[index].matched {
-                    newRevealedCards.append(revealedCards[index])
-                }
+        for index in revealedCards.indices {
+            if !revealedCards[index].matched {
+                newRevealedCards.append(revealedCards[index])
+            } else {
+                var discard = revealedCards[index]
+                discard.matched = false
+                discard.selected = false
+                discardedCards.append(discard)
             }
-            revealedCards = newRevealedCards
         }
+        revealedCards = newRevealedCards
     }
     
     enum setStatus {
@@ -131,7 +130,6 @@ struct SetModel {
                             }
                         }
                     } else {
-                        replaceMatched()
                         break
                     }
                 } else if revealedCards[index].selected == true {
@@ -159,7 +157,7 @@ struct SetModel {
         let shape: String
         let shading: String
         let color: String
-        var inPlay: Bool = true
+        var faceUp: Bool = true
         var selected: Bool = false
         var matched: Bool = false
     }
